@@ -1,12 +1,10 @@
 # -------------------------------- #
 # Autor: Thiago Jacob Lannes
-# Versão: 0.9
-# Data: 21/07/2022
+# Versão: 0.98
+# Data: 25/07/2022
 # -------------------------------- #
 
-from ast import Try
 from json.encoder import ESCAPE
-from lib2to3.pgen2.driver import Driver
 import time
 from datetime import datetime
 from datetime import date, timedelta
@@ -14,6 +12,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from tkinter import *
@@ -24,7 +23,7 @@ import json
 root = Tk()
 root.title('FastBO')
 #root.iconbitmap('C:/')
-root.geometry("260x320")
+root.geometry("260x285")
 # ------------------------------------------------ FILEIRA ESQUERDA ------------------------------------------------
 
 LabelServer = Label(root, text="Servidor:")
@@ -62,8 +61,14 @@ Passcheckbutton.place(x=150, y=52)
 LabelCal = Label(root, text="Data:")
 LabelCal.place(x=10, y=80)
 
-cal_Entry=DateEntry(root, selectmode='day', date_pattern="yyyy/mm/dd")
-cal_Entry.place(x=50, y=80)
+cal_Entry = DateEntry(root, selectmode='day', date_pattern="yyyy/mm/dd")
+cal_Entry.place(x=46, y=80)
+
+LabelLoja = Label(root, text="Loja:")
+LabelLoja.place(x=151, y=80)
+
+Loja_Entry = Entry(root)
+Loja_Entry.place(x=184, y=80, width=30, height=21)
 
 Script_Dep_e_Sec_Entry = IntVar()
 Script_DS = Checkbutton(root, text="Departamento e Secçao", variable=Script_Dep_e_Sec_Entry)
@@ -74,34 +79,25 @@ Script_FP.place(x=10, y=130)
 Script_Venda_e_Fecho_TPA_Entry = IntVar()
 Script_VFTPA = Checkbutton(root, text="Venda e Fecho TPA - Detalhe", variable=Script_Venda_e_Fecho_TPA_Entry)
 Script_VFTPA.place(x=10, y=155)
-Script_TDR_Entry = IntVar()
-Script_TDR = Checkbutton(root, text="TDR - Encerramento de Caixa", variable=Script_TDR_Entry)
-Script_TDR.place(x=10, y=180)
+#Script_TDR_Entry = IntVar()
+#Script_TDR = Checkbutton(root, text="TDR - Encerramento de Caixa", variable=Script_TDR_Entry)
+#Script_TDR.place(x=10, y=180)
 Script_RCE_Entry = IntVar()
 Script_R = Checkbutton(root, text="RCE", variable=Script_RCE_Entry)
-Script_R.place(x=10, y=205)
-
-
-# ------------------------------------------------ FILEIRA DIREITA ------------------------------------------------
-"""
-LabelFATU = Label(root, text="DOWNLOAD DE FATURA")
-LabelFATU.place(x=280, y=5)
-
-LabelServer_FATU = Label(root, text="Servidor:")
-LabelServer_FATU.place(x=230, y=30)
-
-SERVER_Entry_FATU = Entry(root, width=15)
-SERVER_Entry_FATU.place(x=284, y=30)
-"""
+Script_R.place(x=10, y=180)
 
 # ------------------------------------------------ RUN ------------------------------------------------
 def RunPrep():    
     PATH = "C:\Program Files (x86)\chromedriver.exe"
     driver = webdriver.Chrome(PATH)
     SERVER_URL = SERVER_Entry.get()
+    URLHttp = "http://"
+    if URLHttp not in SERVER_URL:
+        SERVER_URL = "{}{}".format(URLHttp, SERVER_URL)
     driver.get(SERVER_URL)
 
     delay = 10 # segundos
+    delayquick = 1
     hoje = datetime.today().strftime('%Y-%m-%d')
     
     OperatorID = driver.find_element(by=By.ID, value="ctl0_main_txtOperatorID")
@@ -114,6 +110,13 @@ def RunPrep():
     time.sleep(1)
     Pass = Pass_Entry.get()
     OperatorPass.send_keys(Pass)
+
+    Loja = Loja_Entry.get()
+    Option_LojaRet = driver.find_element(by=By.ID, value="ctl0_main_cboRetailStoreCurrentID")
+    Option_LojaEscolhida = Option_LojaRet.find_element(by=By.XPATH, value="/html/body/form/div[2]/div[2]/div[1]/div[1]/div/div[1]/div[4]/div/select/option[starts-with(@value, '" + Loja + "')]").click()
+
+    time.sleep(.5)
+
     OperatorLoginBt = driver.find_element(by=By.ID, value="ctl0_main_buttonLogin") 
     OperatorLoginBt.click()
 
@@ -292,7 +295,6 @@ def RunPrep():
 
     time.sleep(4)
 
-"""
 def RunFATU():
     PATH = "C:\Program Files (x86)\chromedriver.exe"
     driver = webdriver.Chrome(PATH)
@@ -302,24 +304,38 @@ def RunFATU():
     UserFATU = driver.find_element(by=By.ID, value="edit-name")
     UserFATU.send_keys(User)
     
-    time.sleep(1)
+    time.sleep(.5)
     
-    Pass = Pass_Entry.get()
+    Pass = "407100"
     PassFATU = driver.find_element(by=By.ID, value="edit-pass")
     PassFATU.send_keys(Pass)
 
     BtLoginFATU = driver.find_element(by=By.ID, value="edit-submit").click()
 
-    ServidorFATU = SERVER_Entry_FATU.get()
-    
-    time.sleep(3)
-    
-    #LabTest_Nav = driver.find_element(by=By.CLASS_NAME, value="menu-310").click()
-    
-    #time.sleep(1)
+    ServidorFATU = SERVER_Entry.get()
+    Loja = Loja_Entry.get()
+    DataEscolhida = cal_Entry.get()
+    DataEscolhida = DataEscolhida.replace("/", "-")
 
-    driver.get("/sccm_unifo/?q=ExtractUniFOFiles")
-"""
+    time.sleep(1)
+
+    driver.get("http://10.126.96.185/sccm_unifo/?q=ExtractUniFOFiles")
+
+    Servidor_Input = driver.find_element(by=By.ID, value="edit-server")
+    Servidor_Input.click()
+    OptionServer_FATU = Servidor_Input.find_element(by=By.XPATH, value="/html/body/div[2]/div/div[2]/div/div[2]/div/div[2]/div/div/form/div/div/div/table[1]/tbody/tr/td[1]/div/select/option[starts-with(@value, '" + ServidorFATU + "')]").click()
+    
+    time.sleep(1)
+
+    Loja_Input = driver.find_element(by=By.ID, value="edit-store--2")
+    Loja_Input.click()
+    OptionLoja_FATU = Loja_Input.find_element(by=By.XPATH, value="/html/body/div[2]/div/div[2]/div/div[2]/div/div[2]/div/div/form/div/div/div[2]/table[1]/tbody/tr/td[2]/div/select/option[starts-with(@value, '" + Loja + "')]").click()
+    
+    time.sleep(.5)
+    Data_FATU = driver.find_element(by=By.ID, value="edit-datepicker--2-datepicker-popup-1").send_keys(DataEscolhida)
+    BtDownload_FATU = driver.find_element(by=By.ID, value="edit-submit-extract--2").click()
+
+    time.sleep(5)
 
 def RunRet():
     PATH = "C:\Program Files (x86)\chromedriver.exe"
@@ -333,17 +349,22 @@ def RunRet():
             "selectedDestinationId": "Save as PDF",
             "version": 2
         }
-    prefs = {'printing.print_preview_sticky_settings.appState': json.dumps(settings), 'savefile.default_directory': 'C:\\Users\\thiago.j.lannes\\Desktop\\Relatórios'}
+    prefs = {'printing.print_preview_sticky_settings.appState': json.dumps(settings), 'savefile.default_directory': 'C:\\Users\\thiago.j.lannes\\Desktop\\'}
     Options.add_experimental_option('prefs', prefs)
     Options.add_argument('--kiosk-printing')
     Options.add_argument("--start-maximized")
-
+    
     driver = webdriver.Chrome(options=Options, executable_path=PATH)
     SERVER_URL = SERVER_Entry.get()
+    URLHttp = "http://"
+    if URLHttp not in SERVER_URL:
+        SERVER_URL = "{}{}".format(URLHttp, SERVER_URL)
+            
     driver.get(SERVER_URL)
 
     original_window = driver.current_window_handle # window handle da página principal
     delay = 5 # segundos
+    delayquick = 2 # segundos
     hoje = date.today().strftime('%Y/%m/%d') # dia atual
 
     OperatorID = driver.find_element(by=By.ID, value="ctl0_main_txtOperatorID")
@@ -356,6 +377,14 @@ def RunRet():
     time.sleep(1)
     Pass = Pass_Entry.get()
     OperatorPass.send_keys(Pass)
+
+
+    Loja = Loja_Entry.get()
+    Option_LojaRet = driver.find_element(by=By.ID, value="ctl0_main_cboRetailStoreCurrentID")
+    Option_LojaEscolhida = Option_LojaRet.find_element(by=By.XPATH, value="/html/body/form/div[2]/div[2]/div[1]/div[1]/div/div[1]/div[4]/div/select/option[starts-with(@value, '" + Loja + "')]").click()
+
+    time.sleep(.5)
+
     OperatorLoginBt = driver.find_element(by=By.ID, value="ctl0_main_buttonLogin") 
     OperatorLoginBt.click()
 
@@ -370,12 +399,14 @@ def RunRet():
     # Aba de Relatórios
     time.sleep(.5)
     RelatorioNav = driver.find_element(by=By.ID, value="m66").click()
+
     # Obtenção de opções de Relatórios
     Bool_Script_Dep_e_Sec = Script_Dep_e_Sec_Entry.get()
     Bool_Script_Forma_de_Pag = Script_Forma_de_Pag_Entry.get()
     Bool_Script_Venda_e_Fecho_TPA = Script_Venda_e_Fecho_TPA_Entry.get()
-    Bool_Script_TDR = Script_TDR_Entry.get()
+    #Bool_Script_TDR = Script_TDR_Entry.get()
     Bool_Script_RCE = Script_RCE_Entry.get()
+
     # Opções de Relatórios
     time.sleep(0.5)
 
@@ -411,8 +442,8 @@ def RunRet():
         time.sleep(3)
         
     if Bool_Script_Forma_de_Pag == 1:
-
-        WaitTab = WebDriverWait(driver, delay).until(EC.number_of_windows_to_be(2))
+        
+        #WaitTab = WebDriverWait(driver, delayquick).until(EC.number_of_windows_to_be(2))
         
         for window_handle in driver.window_handles:
             if window_handle != original_window:
@@ -435,11 +466,13 @@ def RunRet():
         BtPrint = driver.find_element(by=By.ID, value="ctl0_btnToolbarReportExport2PDF")
         BtPrint.click()
 
-        WaitTab = WebDriverWait(driver, delay).until(EC.number_of_windows_to_be(2))
+        WaitTab = WebDriverWait(driver, delayquick).until(EC.number_of_windows_to_be(2))
         
         for window_handle in driver.window_handles:
             if window_handle != original_window:
                 driver.switch_to.window(window_handle)
+                break
+            else:
                 break
         driver.execute_script('window.print();')
         
@@ -449,7 +482,7 @@ def RunRet():
 
     if Bool_Script_Venda_e_Fecho_TPA == 1:
 
-        WaitTab = WebDriverWait(driver, delay).until(EC.number_of_windows_to_be(2))
+        #WaitTab = WebDriverWait(driver, delayquick).until(EC.number_of_windows_to_be(2))
         
         for window_handle in driver.window_handles:
             if window_handle != original_window:
@@ -471,11 +504,13 @@ def RunRet():
         BtPrint = driver.find_element(by=By.ID, value="ctl0_btnToolbarReportExport2PDF")
         BtPrint.click()
 
-        WaitTab = WebDriverWait(driver, delay).until(EC.number_of_windows_to_be(2))
+        WaitTab = WebDriverWait(driver, delayquick).until(EC.number_of_windows_to_be(2))
         
         for window_handle in driver.window_handles:
             if window_handle != original_window:
                 driver.switch_to.window(window_handle)
+                break
+            else:
                 break
         driver.execute_script('window.print();')
         
@@ -483,36 +518,9 @@ def RunRet():
         driver.switch_to.window(original_window)
         time.sleep(3)
 
-    if Bool_Script_TDR == 1:
-
-        WaitTab = WebDriverWait(driver, delay).until(EC.number_of_windows_to_be(2))
-        
-        for window_handle in driver.window_handles:
-            if window_handle != original_window:
-                driver.switch_to.window(window_handle)
-                driver.close()
-                break
-
-        driver.switch_to.window(original_window)
-
-        TDRMainNav = driver.find_element(by=By.ID, value="m157").click()
-        time.sleep(1)
-        EncerNav = driver.find_element(by=By.ID, value="m160").click()
-
-        if DataEscolhida != hoje:
-            DataTDR = driver.find_element(by=By.ID, value="ctl0_Main_txtBusinessDayDate_text_txtBusinessDayDate").clear()
-            DataTDR = driver.find_element(by=By.ID, value="ctl0_Main_txtBusinessDayDate_text_txtBusinessDayDate").send_keys(DataEscolhida)
-        BtTDR = driver.find_element(by=By.ID, value="ctl0_Main_btnSearch").click()
-        try:
-            TableLoad = WebDriverWait(driver, delay).until(EC.presence_of_element_located((By.ID, 'ctl0_Main_grdSettlement_DataGrid')))
-        except TimeoutException:
-            print ("Tabela de operadores não está OK")
-        
-        time.sleep(.5)
-
     if Bool_Script_RCE == 1:
 
-        WaitTab = WebDriverWait(driver, delay).until(EC.number_of_windows_to_be(2))
+        #WaitTab = WebDriverWait(driver, delayquick).until(EC.number_of_windows_to_be(2))
         
         for window_handle in driver.window_handles:
             if window_handle != original_window:
@@ -548,22 +556,55 @@ def RunRet():
 
     driver.execute_script("alert('Script finalizado')")
 
-    time.sleep(100)
+    time.sleep(5)
 # ------------------------------------------------ BUTTONS ------------------------------------------------
-LeftButton = Button(root, text="COMEÇAR SCRIPT RETAGUARDA", command=RunRet)
-LeftButton.place(x=35, y=240)
+RetaguardaButton = Button(root, text="COMEÇAR BACKUP RETAGUARDA", width=34, height=1, command=RunRet)
+RetaguardaButton.place(x=5, y=215)
 
-RightButton = Button(root, text="CONFIGURAR TECLAS PROMO", command=RunPrep)
+TeclaButton = Button(root, text="TECLAS PROMO", width=18, height=1, command=RunPrep)
 FontSize = font.Font(size=8)
-RightButton['font'] = FontSize
-RightButton.place(x=48, y=275)
+TeclaButton['font'] = FontSize
+TeclaButton.place(x=5, y=250)
 
+FTDownloadButton = Button(root, text="DOWNLOAD FATURA", width=18, height=1, command=RunFATU)
+FontSize = font.Font(size=8)
+FTDownloadButton['font'] = FontSize
+FTDownloadButton.place(x=135, y=250)
 
 root.mainloop()
 
+""" 
+----------------- TDR ------------------
+    if Bool_Script_TDR == 1:
 
+        WaitTab = WebDriverWait(driver, delay).until(EC.number_of_windows_to_be(2))
+        
+        for window_handle in driver.window_handles:
+            if window_handle != original_window:
+                driver.switch_to.window(window_handle)
+                driver.close()
+                break
 
-"""
+        driver.switch_to.window(original_window)
+        TDRMainNav = driver.find_element(by=By.ID, value="m157").click()
+        time.sleep(1)
+        EncerNav = driver.find_element(by=By.ID, value="m160").click()
+
+        if DataEscolhida != hoje:
+            DataTDR = driver.find_element(by=By.ID, value="ctl0_Main_txtBusinessDayDate_text_txtBusinessDayDate").clear()
+            DataTDR = driver.find_element(by=By.ID, value="ctl0_Main_txtBusinessDayDate_text_txtBusinessDayDate").send_keys(DataEscolhida)
+        BtTDR = driver.find_element(by=By.ID, value="ctl0_Main_btnSearch").click()
+        try:
+            TableLoad = WebDriverWait(driver, delay).until(EC.presence_of_element_located((By.ID, 'ctl0_Main_grdSettlement_DataGrid')))
+        except TimeoutException:
+            print ("Tabela de operadores não está OK")
+        
+        time.sleep(.5)
+
+        Table = driver.find_element(By.XPATH, value="//*[@id='ctl0_Main_grdSettlement_DataGrid']/tbody")
+        count_of_rows = len(Table.find_element(By.XPATH, value="./tr"))
+        print(count_of_rows)
+
 ------------------------- AGENDAMENTO DE FUNDO ------------------------
 time.sleep(1)
 
