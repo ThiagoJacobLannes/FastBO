@@ -1,11 +1,12 @@
 # -------------------------------- #
 # Autor: Thiago Jacob Lannes
-# Versão: 0.98
-# Data: 25/07/2022
+# Versão: 1.0
+# Data: 27/07/2022
 # -------------------------------- #
 
 from json.encoder import ESCAPE
 import time
+import os
 from datetime import datetime
 from datetime import date, timedelta
 from selenium import webdriver 
@@ -19,6 +20,14 @@ from tkinter import *
 from tkcalendar import DateEntry
 import tkinter.font as font
 import json
+
+File_path = 'c:/users/' + os.getlogin() + '\Desktop\Relatórios'
+
+
+isExist = os.path.exists(File_path) # Verifica se ficheiro existe
+
+if not isExist:
+  os.makedirs(File_path) # Cria ficheiro caso não exista
 
 root = Tk()
 root.title('FastBO')
@@ -349,7 +358,7 @@ def RunRet():
             "selectedDestinationId": "Save as PDF",
             "version": 2
         }
-    prefs = {'printing.print_preview_sticky_settings.appState': json.dumps(settings), 'savefile.default_directory': 'C:\\Users\\thiago.j.lannes\\Desktop\\'}
+    prefs = {'printing.print_preview_sticky_settings.appState': json.dumps(settings), 'savefile.default_directory': 'c:/users/' + os.getlogin() + '\Desktop\Relatórios'}
     Options.add_experimental_option('prefs', prefs)
     Options.add_argument('--kiosk-printing')
     Options.add_argument("--start-maximized")
@@ -555,6 +564,8 @@ def RunRet():
         RelatorioNav = driver.find_element(by=By.ID, value="m66").click()
 
     driver.execute_script("alert('Script finalizado')")
+
+    os.startfile(File_path)
 
     time.sleep(5)
 # ------------------------------------------------ BUTTONS ------------------------------------------------
