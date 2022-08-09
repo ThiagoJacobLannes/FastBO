@@ -315,7 +315,7 @@ def RunFATU():
     
     time.sleep(.5)
     
-    Pass = "407100"
+    Pass = "****"
     PassFATU = driver.find_element(by=By.ID, value="edit-pass")
     PassFATU.send_keys(Pass)
 
