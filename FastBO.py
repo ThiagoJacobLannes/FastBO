@@ -23,7 +23,6 @@ import json
 
 File_path = 'c:/users/' + os.getlogin() + '\Desktop\Relatórios'
 
-
 isExist = os.path.exists(File_path) # Verifica se ficheiro existe
 
 if not isExist:
@@ -315,7 +314,7 @@ def RunFATU():
     
     time.sleep(.5)
     
-    Pass = "****"
+    Pass = "407100"
     PassFATU = driver.find_element(by=By.ID, value="edit-pass")
     PassFATU.send_keys(Pass)
 
@@ -348,6 +347,22 @@ def RunFATU():
 
 def RunRet():
     PATH = "C:\Program Files (x86)\chromedriver.exe"
+
+    # Data
+    DataEscolhida = cal_Entry.get()
+    DataEscolhidaPath = DataEscolhida.replace("/", "-")
+    SERVER_URL = SERVER_Entry.get()
+    Loja = Loja_Entry.get()
+
+# Server/Loja - Data
+
+    File_path = 'c:/users/' + os.getlogin() + '/Desktop/Relatórios/' + SERVER_URL + '/' 'Loja ' + Loja  + ' - ' + DataEscolhidaPath + '/'
+
+    isExist = os.path.exists(File_path) # Verifica se ficheiro específico a data existe
+
+    if not isExist:
+        os.makedirs(File_path) # Cria ficheiro caso não exista
+
     Options = webdriver.ChromeOptions()
     settings = {
         "recentDestinations": [{
@@ -358,13 +373,12 @@ def RunRet():
             "selectedDestinationId": "Save as PDF",
             "version": 2
         }
-    prefs = {'printing.print_preview_sticky_settings.appState': json.dumps(settings), 'savefile.default_directory': 'c:/users/' + os.getlogin() + '\Desktop\Relatórios'}
+    prefs = {'printing.print_preview_sticky_settings.appState': json.dumps(settings), 'savefile.default_directory': 'c:/users/' + os.getlogin() + '/Desktop/Relatórios/' + SERVER_URL + '/' 'Loja ' + Loja  + ' - ' + DataEscolhidaPath + '/'}
     Options.add_experimental_option('prefs', prefs)
     Options.add_argument('--kiosk-printing')
     Options.add_argument("--start-maximized")
     
     driver = webdriver.Chrome(options=Options, executable_path=PATH)
-    SERVER_URL = SERVER_Entry.get()
     URLHttp = "http://"
     if URLHttp not in SERVER_URL:
         SERVER_URL = "{}{}".format(URLHttp, SERVER_URL)
@@ -388,7 +402,6 @@ def RunRet():
     OperatorPass.send_keys(Pass)
 
 
-    Loja = Loja_Entry.get()
     Option_LojaRet = driver.find_element(by=By.ID, value="ctl0_main_cboRetailStoreCurrentID")
     Option_LojaEscolhida = Option_LojaRet.find_element(by=By.XPATH, value="/html/body/form/div[2]/div[2]/div[1]/div[1]/div/div[1]/div[4]/div/select/option[starts-with(@value, '" + Loja + "')]").click()
 
@@ -403,8 +416,6 @@ def RunRet():
     except TimeoutException:
         print ("Perfomance não está OK")
 
-    # Data
-    DataEscolhida = cal_Entry.get()
     # Aba de Relatórios
     time.sleep(.5)
     RelatorioNav = driver.find_element(by=By.ID, value="m66").click()
